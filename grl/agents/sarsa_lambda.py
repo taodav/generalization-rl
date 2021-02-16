@@ -9,7 +9,7 @@ class TRACE(IntEnum):
     REPLACING = 2
 
 
-class QLearningAgent(agent.BaseAgent):
+class SarsaAgent(agent.BaseAgent):
     def agent_init(self, agent_init_info):
         self.num_actions = agent_init_info["num_actions"]
         self.num_states = agent_init_info["num_states"]
