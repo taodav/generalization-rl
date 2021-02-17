@@ -1,7 +1,8 @@
 from enum import IntEnum
 
-import agent
 import numpy as np
+
+import agent
 
 
 class TRACE(IntEnum):
