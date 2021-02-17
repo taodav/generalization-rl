@@ -1,6 +1,5 @@
 import numpy as np
 from gwt import GridWorldTileCoder
-from utils import argmax
 
 import tiles3 as tc
 from agent import BaseAgent
@@ -52,7 +51,7 @@ class SarsaAgent(BaseAgent):
         if np.random.random() < self.epsilon:
             chosen_action = np.random.choice(self.num_actions)
         else:
-            chosen_action = argmax(action_values)
+            chosen_action = self.argmax(action_values)
 
         return chosen_action, action_values[chosen_action]
 
