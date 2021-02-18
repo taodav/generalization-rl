@@ -1,8 +1,7 @@
 import numpy as np
-from gwt import GridWorldTileCoder
 
-import tiles3 as tc
-from agent import BaseAgent
+import grl.tiles3 as tc
+from grl.agents import BaseAgent
 
 
 # SARSA
@@ -14,16 +13,17 @@ class SarsaAgent(BaseAgent):
         Args:
         agent_init_info (dict), the parameters used to initialize the agent. The dictionary contains:
         {
-            num_states (int): The number of states,
             num_actions (int): The number of actions,
             epsilon (float): The epsilon parameter for exploration,
             step_size (float): The step-size,
             discount (float): The discount factor,
+            iht_size (int): index hash table size,
+            num_tilings (int): number of tilings to use,
+            num_tiles (int): number of tiles (over one dimension) in a tiling
         }
 
         """
         self.num_actions = agent_init_info["num_actions"]
-        self.num_states = agent_init_info["num_states"]
         self.epsilon = agent_init_info["epsilon"]
         self.step_size = agent_init_info["step_size"]
         self.discount = agent_init_info["discount"]
@@ -31,7 +31,9 @@ class SarsaAgent(BaseAgent):
 
         self.w = np.ones((self.num_actions, agent_init_info['iht_size']))
 
-        self.tc = MountainCarTileCoder(iht_size=agent_init_info['iht_size'], num_tilings=agent_init_info['num_tilings'], num_tiles=agent_init_info['num_tiles'])
+        self.tc = MountainCarTileCoder(iht_size=agent_init_info['iht_size'],
+                                       num_tilings=agent_init_info['num_tilings'],
+                                       num_tiles=agent_init_info['num_tiles'])
 
     def select_action(self, tiles):
         """
@@ -97,7 +99,7 @@ class SarsaAgent(BaseAgent):
         self.last_action = current_action
         self.previous_tiles = np.copy(active_tiles)
         self.steps += 1
-        return self.last_action
+        return self.last_action, td_error
 
     def agent_end(self, reward, state, append_buffer=True):
         """Run when the agent terminates.
@@ -108,6 +110,7 @@ class SarsaAgent(BaseAgent):
         td_target = reward
         td_error = td_target - self.w[self.last_action][self.previous_tiles].sum()
         self.w[self.last_action][self.previous_tiles] += self.step_size * td_error
+        return td_error
 
 
 class MountainCarTileCoder:
@@ -141,8 +144,8 @@ class MountainCarTileCoder:
         """
         # Set the max and min of position and velocity to scale the input
         POSITION_MIN = -1.2
-        POSITION_MAX = 0.5
-        VELOCITY_MIN = -0.07
+        POSITION_MAX = 0.6
+        VELOCITY_MIN = 0.
         VELOCITY_MAX = 0.07
 
         position_scale = self.num_tiles / (POSITION_MAX - POSITION_MIN)

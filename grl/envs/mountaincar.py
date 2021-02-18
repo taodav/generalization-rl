@@ -59,7 +59,7 @@ class MountainCarEnv(gym.Env):
 
     def __init__(self, goal_velocity=0, accel_bias_mean=1., p_offset=0., v_offset=0.,
                  p_noise_divider=20., v_noise_divider=20.,
-                 gravity=0.0025, accel_factor=0.001):
+                 gravity=0.0025, accel_factor=0.001, seed=None):
 
         self.accel_bias_mean = accel_bias_mean
         self.p_offset = p_offset
@@ -90,7 +90,7 @@ class MountainCarEnv(gym.Env):
             self.low, self.high, dtype=np.float32
         )
 
-        self.seed()
+        self.seed(seed)
 
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)

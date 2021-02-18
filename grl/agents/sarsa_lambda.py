@@ -2,7 +2,7 @@ from enum import IntEnum
 
 import numpy as np
 
-import agent
+from grl.agents import BaseAgent
 
 
 class TRACE(IntEnum):
@@ -10,7 +10,7 @@ class TRACE(IntEnum):
     REPLACING = 2
 
 
-class SarsaAgent(agent.BaseAgent):
+class SarsaAgent(BaseAgent):
     def agent_init(self, agent_init_info):
         self.num_actions = agent_init_info["num_actions"]
         self.num_states = agent_init_info["num_states"]
