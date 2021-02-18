@@ -84,14 +84,14 @@ class DQNAgent(agent.BaseAgent):
         else:
             action = self.argmax(current_q)
 
-        self.batch_train(self.prev_state, self.prev_action, state, action, reward, self.discount)
+        loss = self.batch_train(self.prev_state, self.prev_action, state, action, reward, self.discount)
 
         self.prev_action_value = current_q[action]
         self.prev_state = state
         self.prev_action = action
         self.steps += 1
 
-        return action
+        return action, loss.item()
 
     def agent_end(self, reward, state, append_buffer=True):
         state = self.get_state_feature(state)
@@ -127,6 +127,7 @@ class DQNAgent(agent.BaseAgent):
         self.optimizer.step()
         # if self.updates % 100 == 0:
         #     self.update()
+        return loss
 
     def polyak_update(self):
         for target_param, param in zip(self.target_nn.parameters(), self.nn.parameters()):
