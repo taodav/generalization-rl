@@ -45,7 +45,7 @@ class SarsaAgent(BaseAgent):
             action = self.rand_generator.randint(self.num_actions)
         else:
             action = self.argmax(current_q)
-        delta = self.step_size * (reward + self.discount * self.q[state, action] - self.q[self.prev_state, self.prev_action])
+        delta = (reward + self.discount * self.q[state, action] - self.q[self.prev_state, self.prev_action])
         self.z *= self.discount * self.lam
         if self.trace_type == TRACE.ACCUMULATE:
             self.z[self.prev_state, self.prev_action] += 1

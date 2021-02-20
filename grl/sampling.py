@@ -3,6 +3,7 @@ from typing import Callable, List
 
 from grl.envs.mountaincar import MountainCarEnv
 
+
 def sample_mountaincar_env(seed: int, n: int) -> List[MountainCarEnv]:
     """
     Sample n mountain car environments based on generalizations described in
