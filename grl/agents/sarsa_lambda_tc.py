@@ -103,7 +103,7 @@ class SarsaLambdaTCAgent(BaseAgent):
             self.z[self.last_action, active_tiles] += 1
         else:
             self.z[self.last_action, active_tiles] = 1
-        self.w[self.last_action][self.previous_tiles] += self.step_size * td_error * self.z
+        self.w += self.step_size * td_error * self.z
 
         self.last_action = current_action
         self.previous_tiles = np.copy(active_tiles)
@@ -124,5 +124,5 @@ class SarsaLambdaTCAgent(BaseAgent):
             self.z[self.last_action, self.previous_tiles] += 1
         else:
             self.z[self.last_action, self.previous_tiles] = 1
-        self.w[self.last_action][self.previous_tiles] += self.step_size * td_error * self.z
+        self.w += self.step_size * td_error * self.z
         return td_error

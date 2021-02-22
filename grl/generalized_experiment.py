@@ -5,20 +5,17 @@ Essentially runs one set of hyperparameters over a set of "tuning environments"
 and returns the hyperparams and agent with the highest total reward averaged
 over the tuning environments.
 """
-
+import copy
+import numpy as np
 from typing import Callable, List
 
 from grl.runner import Runner
+
 
 class GeneralizedExperiment:
     def __init__(self, agent_class: Callable, env_class: Callable,
                    agent_hps: dict, env_hpses: List[dict], run_hps: dict,
                    seeds: List[int]):
-        raise NotImplemented
-
-
-
-    def experiment(self, ):
         """
         Run one set of hyperparams for multiple seeds.
         :param agent_class: agent class to instantiate
@@ -33,16 +30,36 @@ class GeneralizedExperiment:
         :param seeds: list of seeds to run each run
         :return: not sure yet lmao
         """
-        for seed in seeds:
+        self.agent_class = agent_class
+        self.env_class = env_class
+        self.agent_hps = agent_hps
+        self.env_hpses = env_hpses
+        self.run_hps = run_hps
+        self.seeds = seeds
+
+        self.all_avg_ep_rews = []
+
+
+    def run(self):
+
+        for seed in self.seeds:
+            agent_hps = copy.deepcopy(self.agent_hps)
+            run_hps = copy.deepcopy(self.run_hps)
             agent_hps['seed'] = seed
-            env_hps['seed'] = seed
             run_hps['seed'] = seed
 
-            env = env_class(**env_hps)
+            for original_env_hps in self.env_hpses:
+                env_hps = copy.deepcopy(original_env_hps)
+                env_hps['seed'] = seed
 
-            agent_hps['num_actions'] = env.action_space.n
-            agent = agent_class()
-            agent.agent_init(agent_hps)
+                env = self.env_class(**env_hps)
 
-            runner = Runner(agent, env, run_hps)
-            runner.run()
+                agent_hps['num_actions'] = env.action_space.n
+                agent = self.agent_class()
+                agent.agent_init(agent_hps)
+
+                runner = Runner(agent, env, run_hps)
+                runner.run()
+
+                self.all_avg_ep_rews.append(np.average(runner.all_ep_rewards))
+

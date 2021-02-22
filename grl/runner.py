@@ -74,11 +74,14 @@ class Runner:
 
             td_error = self.agent.agent_end(rew, obs)
             self.logs['error'].append(td_error)
+            self.total_episodes += 1
+
+        self.pbar.close()
 
     def log_error(self):
         self.pbar.update(self.log_every)
         self.pbar.set_description(f'Episode: {self.total_episodes}, '
-                                  f'Avg. reward per episode: {np.average(self.all_ep_rewards)}'
-                                  f'TD error: {np.average(self.logs["error"][-100:])}')
+                                  f'Avg. reward per episode: {np.average(self.all_ep_rewards):.{1}} '
+                                  f'TD error: {np.average(self.logs["error"][-100:]):.{3}}')
         # TODO: log errors systematically
 
