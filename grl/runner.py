@@ -1,4 +1,5 @@
 import gym
+import numpy as np
 
 from tqdm import tqdm
 
@@ -27,9 +28,11 @@ class Runner:
         # Should we include this?
         self.max_eps_steps = hps['max_eps_steps']
         self.max_total_steps = hps['max_total_steps']
+        # self.max_total_episodes = hps['max_total_episodes']
         self.log_every = hps['log_every']
 
         self.total_steps = 0
+        self.total_episodes = 0
         self.pbar = tqdm(total=self.max_total_steps)
 
         # For stuff you want to log
@@ -40,6 +43,7 @@ class Runner:
 
     def run(self):
         # Keep running for max_total_steps
+        # while self.total_steps < self.max_total_steps:
         while self.total_steps < self.max_total_steps:
             eps_steps = 0
             obs = self.env.reset()
@@ -47,24 +51,28 @@ class Runner:
 
             action = self.agent.agent_start(obs)
 
-            while not done:
+            while True:
                 obs, rew, done, info = self.env.step(action)
 
                 self.total_steps += 1
                 eps_steps += 1
 
-                if not done or eps_steps >= self.max_eps_steps:
+                if not done and eps_steps < self.max_eps_steps and self.total_steps < self.max_total_steps:
                     action, td_error = self.agent.agent_step(rew, obs)
                     self.logs['error'].append(td_error)
 
                     # Logging per log_every steps
                     if self.total_steps % self.log_every == 0:
                         self.log_error()
+                else:
+                    break
 
             td_error = self.agent.agent_end(rew, obs)
             self.logs['error'].append(td_error)
 
     def log_error(self):
         self.pbar.update(self.log_every)
+        self.pbar.set_description(f'Episode: {self.total_episodes}, '
+                                  f'TD error: {np.average(self.logs["error"][-100:])}')
         # TODO: log errors systematically
 

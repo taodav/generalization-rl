@@ -1,5 +1,5 @@
 from grl.experiment import experiment
-from grl.agents import SarsaTCAgent
+from grl.agents import SarsaLambdaTCAgent
 from grl.envs.mountaincar import MountainCarEnv
 
 if __name__ == "__main__":
@@ -21,12 +21,12 @@ if __name__ == "__main__":
     run_hps = {
         'log_every': 100,
         'max_eps_steps': 500,
-        'max_total_steps': 100000
+        'max_total_steps': 70000
     }
 
 
 
-    experiment(SarsaTCAgent, MountainCarEnv,
+    experiment(SarsaLambdaTCAgent, MountainCarEnv,
                agent_hps=agent_hps, env_hps=env_hps, run_hps=run_hps,
                seeds=[2020])
 
