@@ -7,7 +7,7 @@ from grl.agents import BaseAgent
 
 
 class Runner:
-    def __init__(self, agent: BaseAgent, env: gym.Env, hps: dict):
+    def __init__(self, agent: BaseAgent, env: gym.Env, hps: dict, id: int = 0):
         """
         Main runner for our RL experiment.
         Initialize with one configuration of agent, environment and hyperparams
@@ -24,6 +24,7 @@ class Runner:
         """
         self.agent = agent
         self.env = env
+        self.id = id
 
         # Should we include this?
         self.max_eps_steps = hps['max_eps_steps']
@@ -33,6 +34,8 @@ class Runner:
 
         self.total_steps = 0
         self.total_episodes = 0
+        self.ep_reward = 0
+        self.all_ep_rewards = []
         self.pbar = tqdm(total=self.max_total_steps)
 
         # For stuff you want to log
@@ -46,6 +49,7 @@ class Runner:
         # while self.total_steps < self.max_total_steps:
         while self.total_steps < self.max_total_steps:
             eps_steps = 0
+            self.ep_reward = 0
             obs = self.env.reset()
             done = False
 
@@ -54,6 +58,7 @@ class Runner:
             while True:
                 obs, rew, done, info = self.env.step(action)
 
+                self.ep_reward += rew
                 self.total_steps += 1
                 eps_steps += 1
 
@@ -65,14 +70,20 @@ class Runner:
                     if self.total_steps % self.log_every == 0:
                         self.log_error()
                 else:
+                    self.all_ep_rewards.append(self.ep_reward)
                     break
 
             td_error = self.agent.agent_end(rew, obs)
             self.logs['error'].append(td_error)
+            self.total_episodes += 1
+
+        self.pbar.close()
 
     def log_error(self):
         self.pbar.update(self.log_every)
-        self.pbar.set_description(f'Episode: {self.total_episodes}, '
-                                  f'TD error: {np.average(self.logs["error"][-100:])}')
+        self.pbar.set_description(f'Env id: {self.id} '
+                                  f'Episode: {self.total_episodes}, '
+                                  f'Avg. reward per episode: {np.average(self.all_ep_rewards):.{3}} '
+                                  f'TD error: {np.average(self.logs["error"][-100:]):.{3}}')
         # TODO: log errors systematically
 
