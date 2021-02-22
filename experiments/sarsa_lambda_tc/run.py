@@ -2,8 +2,8 @@ import json
 from pathlib import Path
 
 from grl.generalized_experiment import GeneralizedExperiment
-# from grl.agents import SarsaLambdaTCAgent
-from grl.agents import SarsaTCAgent
+from grl.agents import SarsaLambdaTCAgent
+# from grl.agents import SarsaTCAgent
 from grl.envs.mountaincar import MountainCarEnv
 from definitions import ROOT_DIR
 
@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     # TODO: run across all hyperparams
 
-    exp = GeneralizedExperiment(SarsaTCAgent, MountainCarEnv,
+    exp = GeneralizedExperiment(SarsaLambdaTCAgent, MountainCarEnv,
                agent_hps=agent_hps, env_hpses=env_hpses, run_hps=run_hps,
                seeds=[2020])
 

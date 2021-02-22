@@ -27,7 +27,7 @@ class SarsaLambdaTCAgent(BaseAgent):
         self.epsilon = agent_init_info["epsilon"]
         self.step_size = agent_init_info["step_size"]
         self.discount = agent_init_info["discount"]
-        self.trace_type = agent_init_info.get("trace_type", TRACE.ACCUMULATE)
+        self.trace_type = agent_init_info.get("trace_type", TRACE.REPLACING)
         self.lam = agent_init_info["lambda"]
         self.rand_generator = np.random.RandomState(agent_init_info["seed"])
 
@@ -103,7 +103,7 @@ class SarsaLambdaTCAgent(BaseAgent):
             self.z[self.last_action, active_tiles] += 1
         else:
             self.z[self.last_action, active_tiles] = 1
-        self.w += self.step_size * td_error * self.z
+        self.w[self.last_action][self.previous_tiles] += self.step_size * td_error * self.z[self.last_action][self.previous_tiles]
 
         self.last_action = current_action
         self.previous_tiles = np.copy(active_tiles)

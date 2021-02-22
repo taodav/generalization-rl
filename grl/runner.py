@@ -7,7 +7,7 @@ from grl.agents import BaseAgent
 
 
 class Runner:
-    def __init__(self, agent: BaseAgent, env: gym.Env, hps: dict):
+    def __init__(self, agent: BaseAgent, env: gym.Env, hps: dict, id: int = 0):
         """
         Main runner for our RL experiment.
         Initialize with one configuration of agent, environment and hyperparams
@@ -24,6 +24,7 @@ class Runner:
         """
         self.agent = agent
         self.env = env
+        self.id = id
 
         # Should we include this?
         self.max_eps_steps = hps['max_eps_steps']
@@ -80,8 +81,9 @@ class Runner:
 
     def log_error(self):
         self.pbar.update(self.log_every)
-        self.pbar.set_description(f'Episode: {self.total_episodes}, '
-                                  f'Avg. reward per episode: {np.average(self.all_ep_rewards):.{1}} '
+        self.pbar.set_description(f'Env id: {self.id} '
+                                  f'Episode: {self.total_episodes}, '
+                                  f'Avg. reward per episode: {np.average(self.all_ep_rewards):.{3}} '
                                   f'TD error: {np.average(self.logs["error"][-100:]):.{3}}')
         # TODO: log errors systematically
 
