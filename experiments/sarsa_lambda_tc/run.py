@@ -1,4 +1,4 @@
-from grl.experiment import experiment
+from grl.generalized_experiments import GeneralizedExperiment
 from grl.agents import SarsaLambdaTCAgent
 from grl.envs.mountaincar import MountainCarEnv
 

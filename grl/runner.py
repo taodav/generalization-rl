@@ -33,6 +33,8 @@ class Runner:
 
         self.total_steps = 0
         self.total_episodes = 0
+        self.ep_reward = 0
+        self.all_ep_rewards = []
         self.pbar = tqdm(total=self.max_total_steps)
 
         # For stuff you want to log
@@ -46,6 +48,7 @@ class Runner:
         # while self.total_steps < self.max_total_steps:
         while self.total_steps < self.max_total_steps:
             eps_steps = 0
+            self.ep_reward = 0
             obs = self.env.reset()
             done = False
 
@@ -54,6 +57,7 @@ class Runner:
             while True:
                 obs, rew, done, info = self.env.step(action)
 
+                self.ep_reward += rew
                 self.total_steps += 1
                 eps_steps += 1
 
@@ -65,6 +69,7 @@ class Runner:
                     if self.total_steps % self.log_every == 0:
                         self.log_error()
                 else:
+                    self.all_ep_rewards.append(self.ep_reward)
                     break
 
             td_error = self.agent.agent_end(rew, obs)
@@ -73,6 +78,7 @@ class Runner:
     def log_error(self):
         self.pbar.update(self.log_every)
         self.pbar.set_description(f'Episode: {self.total_episodes}, '
+                                  f'Avg. reward per episode: {np.average(self.all_ep_rewards)}'
                                   f'TD error: {np.average(self.logs["error"][-100:])}')
         # TODO: log errors systematically
 
