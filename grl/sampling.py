@@ -45,13 +45,20 @@ def sample_mountaincar_env(seed: int, n: int) -> List[dict]:
 if __name__ == "__main__":
     params_file = Path(ROOT_DIR, 'experiments', 'tuning_params.json')
 
-    env_params = sample_mountaincar_env(2020, 25)
+    env_params = sample_mountaincar_env(2020, 100)
     print(f'Saving params to {params_file}')
 
     with open(params_file, 'w') as f:
         json.dump(env_params, f)
 
 
+    test_params_file = Path(ROOT_DIR, 'experiments', 'testing_params.json')
+
+    test_env_params = sample_mountaincar_env(2021, 100)
+    print(f'Saving test params to {test_params_file}')
+
+    with open(test_params_file, 'w') as f:
+        json.dump(test_env_params, f)
 
 
 
