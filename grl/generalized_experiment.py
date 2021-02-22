@@ -17,14 +17,16 @@ class GeneralizedExperiment:
                    agent_hps: dict, env_hpses: List[dict], run_hps: dict,
                    seeds: List[int]):
         """
-        Run one set of hyperparams for multiple seeds.
+        Run one set of hyperparams for multiple seeds across multiple environments.
+        One generalized environment is defined as a set of given hyperparameters.
+
         :param agent_class: agent class to instantiate
         :param env_class: environment class to instantiate
 
         For the below 3 hyperparams, check the respective class for
         an outline of how these hps should look like.
         :param agent_hps: one set of hyperparams to run for the agent.
-        :param env_hps: one set of hyperparams to run for the environment.
+        :param env_hpses: a list of environment hyperparameters to use for each generalized environment.
         :param run_hps: one set of hyperparams for the run itself.
 
         :param seeds: list of seeds to run each run
@@ -48,7 +50,7 @@ class GeneralizedExperiment:
             agent_hps['seed'] = seed
             run_hps['seed'] = seed
 
-            for original_env_hps in self.env_hpses:
+            for i, original_env_hps in enumerate(self.env_hpses):
                 env_hps = copy.deepcopy(original_env_hps)
                 env_hps['seed'] = seed
 
@@ -58,7 +60,7 @@ class GeneralizedExperiment:
                 agent = self.agent_class()
                 agent.agent_init(agent_hps)
 
-                runner = Runner(agent, env, run_hps)
+                runner = Runner(agent, env, run_hps, id=i)
                 runner.run()
 
                 self.all_avg_ep_rews.append(np.average(runner.all_ep_rewards))
