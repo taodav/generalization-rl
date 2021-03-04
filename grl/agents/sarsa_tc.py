@@ -1,7 +1,11 @@
-import numpy as np
-
 import grl.tiles3 as tc
+import numpy as np
 from grl.agents import BaseAgent
+
+POSITION_MIN = -1.2
+POSITION_MAX = 0.6
+VELOCITY_MIN = -0.07
+VELOCITY_MAX = 0.07
 
 
 # SARSA
@@ -31,9 +35,11 @@ class SarsaAgent(BaseAgent):
 
         self.w = np.ones((self.num_actions, agent_init_info['iht_size']))
 
-        self.tc = MountainCarTileCoder(iht_size=agent_init_info['iht_size'],
-                                       num_tilings=agent_init_info['num_tilings'],
-                                       num_tiles=agent_init_info['num_tiles'])
+        self.tc = MountainCarTileCoder(
+            iht_size=agent_init_info['iht_size'],
+            num_tilings=agent_init_info['num_tilings'],
+            num_tiles=agent_init_info['num_tiles'],
+        )
 
     def select_action(self, tiles):
         """
@@ -109,7 +115,8 @@ class SarsaAgent(BaseAgent):
         """
         td_target = reward
         td_error = td_target - self.w[self.last_action][self.previous_tiles].sum()
-        self.w[self.last_action][self.previous_tiles] += self.step_size * td_error
+        if append_buffer:
+            self.w[self.last_action][self.previous_tiles] += self.step_size * td_error
         return td_error
 
 
@@ -143,10 +150,7 @@ class MountainCarTileCoder:
         tiles - np.array, active tiles
         """
         # Set the max and min of position and velocity to scale the input
-        POSITION_MIN = -1.2
-        POSITION_MAX = 0.6
-        VELOCITY_MIN = 0.
-        VELOCITY_MAX = 0.07
+
 
         position_scale = self.num_tiles / (POSITION_MAX - POSITION_MIN)
         velocity_scale = self.num_tiles / (VELOCITY_MAX - VELOCITY_MIN)
