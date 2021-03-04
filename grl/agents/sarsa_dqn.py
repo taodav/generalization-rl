@@ -12,18 +12,20 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
-import agent
+from grl.agents import agent
 
 criterion = torch.nn.MSELoss()
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+# device = torch.device("cpu")
 
 class SimpleNN(nn.Module):
     def __init__(self, input_size, output_size):
         super(SimpleNN, self).__init__()
         self.nonlin = nn.ReLU()
-        self.i2h = nn.Linear(input_size, input_size//2+1, bias=False)
-        self.h2o = nn.Linear(input_size//2+1, output_size, bias=False)
+        # self.i2h = nn.Linear(input_size, input_size//2+1, bias=False)
+        # self.h2o = nn.Linear(input_size//2+1, output_size, bias=False)
+        self.i2h = nn.Linear(input_size, 10, bias=False)
+        self.h2o = nn.Linear(10, output_size, bias=False)
 
     def forward(self, x):
         # 2-layer nn
@@ -57,7 +59,11 @@ class DQNAgent(agent.BaseAgent):
         if classname.find('Linear') != -1:
             torch.nn.init.xavier_uniform(m.weight)
 
+    def get_state_feature(self, state):
+        return torch.FloatTensor([state])
+
     def agent_start(self, state):
+        state = self.get_state_feature(state)
         # Choose action using epsilon greedy.
         with torch.no_grad():
             current_q = self.nn(state)
