@@ -13,8 +13,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-import agent
-
+from .agent import BaseAgent
 criterion = torch.nn.MSELoss()
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -33,7 +32,7 @@ class SimpleNN(nn.Module):
         return x
 
 
-class DQNAgent(agent.BaseAgent):
+class DQNAgent(BaseAgent):
     def agent_init(self, agent_init_info):
         # Store the parameters provided in agent_init_info.
         self.num_actions = agent_init_info["num_actions"]
@@ -59,6 +58,8 @@ class DQNAgent(agent.BaseAgent):
 
     def agent_start(self, state):
         # Choose action using epsilon greedy.
+        state = self.get_state_feature(state)
+
         with torch.no_grad():
             current_q = self.nn(state)
         current_q.squeeze_()
@@ -71,6 +72,9 @@ class DQNAgent(agent.BaseAgent):
         self.prev_action = action
         self.steps = 0
         return action
+
+    def get_state_feature(self, state):
+        return torch.from_numpy(state).to(device).float()
 
     def agent_step(self, reward, state):
         # Choose action using epsilon greedy.
@@ -102,9 +106,9 @@ class DQNAgent(agent.BaseAgent):
         self.updates += 1
         self.nn.train()
         batch = Transition([state], [action], [new_state], [new_action], [reward], [discount])
-        state_batch = torch.cat(batch.state)
+        state_batch = torch.stack(batch.state)
         action_batch = torch.LongTensor(batch.action).view(-1, 1).to(device)
-        new_state_batch = torch.cat(batch.new_state)
+        new_state_batch = torch.stack(batch.new_state)
         new_action_batch = torch.LongTensor(batch.new_action).view(-1, 1).to(device)
         reward_batch = torch.FloatTensor(batch.reward).to(device)
         discount_batch = torch.FloatTensor(batch.discount).to(device)
@@ -129,9 +133,9 @@ class DQNAgent(agent.BaseAgent):
         #     self.update()
         return loss
 
-    def polyak_update(self):
-        for target_param, param in zip(self.target_nn.parameters(), self.nn.parameters()):
-            target_param.data.copy_(self.tau * param + (1 - self.tau) * target_param)
-
-    def hard_update(self):
-        self.target_nn.load_state_dict(self.nn.state_dict())
+    # def polyak_update(self):
+    #     for target_param, param in zip(self.target_nn.parameters(), self.nn.parameters()):
+    #         target_param.data.copy_(self.tau * param + (1 - self.tau) * target_param)
+    #
+    # def hard_update(self):
+    #     self.target_nn.load_state_dict(self.nn.state_dict())
