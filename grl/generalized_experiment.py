@@ -57,6 +57,7 @@ class GeneralizedExperiment:
                 env = self.env_class(**env_hps)
 
                 agent_hps['num_actions'] = env.action_space.n
+                agent_hps['num_states'] = env.observation_space.shape[0]
                 agent = self.agent_class()
                 agent.agent_init(agent_hps)
 
