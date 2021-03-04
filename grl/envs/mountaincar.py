@@ -1,5 +1,5 @@
 """
-Generalized Mountain Car. Based on specifications and code adapted from 
+Generalized Mountain Car. Based on specifications and code adapted from
 https://www.cs.utexas.edu/users/pstone/Papers/bib2html-links/ADPRL11-shimon.pdf
 
 http://incompleteideas.net/sutton/MountainCar/MountainCar1.cp
@@ -10,12 +10,10 @@ https://github.com/openai/gym/blob/master/gym/envs/classic_control/mountain_car.
 """
 import math
 
-import numpy as np
-
 import gym
+import numpy as np
 from gym import spaces
 from gym.utils import seeding
-
 
 
 class MountainCarEnv(gym.Env):
@@ -70,6 +68,7 @@ class MountainCarEnv(gym.Env):
         self.min_position = -1.2
         self.max_position = 0.6
         self.max_speed = 0.07
+        self.min_speed = -0.07
         self.goal_position = 0.5
         self.goal_velocity = goal_velocity
 
@@ -97,8 +96,7 @@ class MountainCarEnv(gym.Env):
         return [seed]
 
     def sample_force(self, mean):
-        adjusted_gaussian = self.np_random.normal(scale=0.05)
-        accel_noise = adjusted_gaussian + mean
+        accel_noise = abs(self.np_random.normal(loc=mean, scale=0.05))
         varied_accel = self.accel_factor * accel_noise
         return varied_accel
 
@@ -132,13 +130,13 @@ class MountainCarEnv(gym.Env):
 
     def observation(self) -> tuple:
         noiseP = self.make_noise(self.min_position, self.max_position)
-        noiseV = self.make_noise(0, self.max_speed)
+        noiseV = self.make_noise(self.min_speed, self.max_speed)
 
         noiseP /= self.p_noise_divider
         noiseV /= self.v_noise_divider
 
-        obs_pos = np.clip(self.state[0] + self.p_offset + noiseP, self.min_position, self.max_position)
-        obs_vel = np.clip(self.state[1] + self.v_offset + noiseV, 0, self.max_speed)
+        obs_pos = np.clip(self.state[0] + self.p_offset + noiseP, self.min_position + self.p_offset, self.max_position + self.p_offset)
+        obs_vel = np.clip(self.state[1] + self.v_offset + noiseV, self.min_speed + self.v_offset, self.max_speed + self.v_offset)
 
         return (obs_pos, obs_vel)
 
