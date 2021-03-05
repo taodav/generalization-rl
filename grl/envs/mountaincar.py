@@ -56,7 +56,7 @@ class MountainCarEnv(gym.Env):
     }
 
     def __init__(self, goal_velocity=0, accel_bias_mean=1., p_offset=0., v_offset=0.,
-                 p_noise_divider=20., v_noise_divider=20., amplitude=3.,
+                 p_noise_divider=20., v_noise_divider=20., amplitude=1.,
                  gravity=0.0025, accel_factor=0.001, seed=None):
 
         self.accel_bias_mean = accel_bias_mean
@@ -66,7 +66,8 @@ class MountainCarEnv(gym.Env):
         self.v_noise_divider = v_noise_divider
         self.amplitude = amplitude
 
-        self.min_position = -1.2
+        # self.min_position = -1.2
+        self.min_position = -1.5
         self.max_position = 0.6
         self.max_speed = 0.07
         self.min_speed = -0.07
@@ -108,7 +109,7 @@ class MountainCarEnv(gym.Env):
 
         varied_accel = self.sample_force(self.accel_bias_mean)
 
-        velocity += (action - 1) * varied_accel + math.cos(self.amplitude * position) * (-self.gravity)
+        velocity += (action - 1) * varied_accel + self.amplitude * math.cos(3 * position) * (-self.gravity)
         velocity = np.clip(velocity, -self.max_speed, self.max_speed)
         position += velocity
         position = np.clip(position, self.min_position, self.max_position)
@@ -147,11 +148,12 @@ class MountainCarEnv(gym.Env):
         return np.array(self.state)
 
     def _height(self, xs):
-        return np.sin(3 * xs) * .45 + .55
+        # return self.amplitude * np.sin(3 * xs) * .45 + .55
+        return self.amplitude * np.sin(3 * xs) * .45 + .75
 
     def render(self, mode='human'):
         screen_width = 600
-        screen_height = 400
+        screen_height = 600
 
         world_width = self.max_position - self.min_position
         scale = screen_width / world_width
@@ -206,7 +208,7 @@ class MountainCarEnv(gym.Env):
         self.cartrans.set_translation(
             (pos-self.min_position) * scale, self._height(pos) * scale
         )
-        self.cartrans.set_rotation(math.cos(self.amplitude * pos))
+        self.cartrans.set_rotation(self.amplitude * math.cos(3 * pos))
 
         return self.viewer.render(return_rgb_array=mode == 'rgb_array')
 
@@ -222,5 +224,10 @@ class MountainCarEnv(gym.Env):
 if __name__ == "__main__":
     from gym.utils.play import play
 
-    env = MountainCarEnv()
-    play(env)
+    keys_to_action = {
+        (ord('a'),): 0,
+        (ord('d'),): 2
+    }
+
+    env = MountainCarEnv(accel_bias_mean=0.8, amplitude=1.75)
+    play(env, keys_to_action=keys_to_action)
