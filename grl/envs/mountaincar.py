@@ -206,7 +206,7 @@ class MountainCarEnv(gym.Env):
         self.cartrans.set_translation(
             (pos-self.min_position) * scale, self._height(pos) * scale
         )
-        self.cartrans.set_rotation(math.cos(3 * pos))
+        self.cartrans.set_rotation(math.cos(self.amplitude * pos))
 
         return self.viewer.render(return_rgb_array=mode == 'rgb_array')
 
