@@ -56,7 +56,7 @@ class MountainCarEnv(gym.Env):
     }
 
     def __init__(self, goal_velocity=0, accel_bias_mean=1., p_offset=0., v_offset=0.,
-                 p_noise_divider=20., v_noise_divider=20.,
+                 p_noise_divider=20., v_noise_divider=20., amplitude=3.,
                  gravity=0.0025, accel_factor=0.001, seed=None):
 
         self.accel_bias_mean = accel_bias_mean
@@ -64,6 +64,7 @@ class MountainCarEnv(gym.Env):
         self.v_offset = v_offset
         self.p_noise_divider = p_noise_divider
         self.v_noise_divider = v_noise_divider
+        self.amplitude = amplitude
 
         self.min_position = -1.2
         self.max_position = 0.6
@@ -107,7 +108,7 @@ class MountainCarEnv(gym.Env):
 
         varied_accel = self.sample_force(self.accel_bias_mean)
 
-        velocity += (action - 1) * varied_accel + math.cos(3 * position) * (-self.gravity)
+        velocity += (action - 1) * varied_accel + math.cos(self.amplitude * position) * (-self.gravity)
         velocity = np.clip(velocity, -self.max_speed, self.max_speed)
         position += velocity
         position = np.clip(position, self.min_position, self.max_position)
@@ -218,4 +219,8 @@ class MountainCarEnv(gym.Env):
             self.viewer.close()
             self.viewer = None
 
+if __name__ == "__main__":
+    from gym.utils.play import play
 
+    env = MountainCarEnv()
+    play(env)
