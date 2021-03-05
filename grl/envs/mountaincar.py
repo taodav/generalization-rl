@@ -57,7 +57,7 @@ class MountainCarEnv(gym.Env):
 
     def __init__(self, goal_velocity=0, accel_bias_mean=1., p_offset=0., v_offset=0.,
                  p_noise_divider=20., v_noise_divider=20.,
-                 gravity=0.0025, accel_factor=0.001, seed=None):
+                 gravity=0.0025, accel_factor=0.001, seed=None, sparse=False):
 
         self.accel_bias_mean = accel_bias_mean
         self.p_offset = p_offset
@@ -74,6 +74,7 @@ class MountainCarEnv(gym.Env):
 
         self.accel_factor = accel_factor
         self.gravity = gravity
+        self.sparse = sparse
 
         self.low = np.array(
             [self.min_position, -self.max_speed], dtype=np.float32
@@ -117,7 +118,12 @@ class MountainCarEnv(gym.Env):
         done = bool(
             position >= self.goal_position and velocity >= self.goal_velocity
         )
-        reward = -1.0
+        if self.sparse:
+            reward = 0
+            if done:
+                reward = 1
+        else:
+            reward = -1.0
 
         self.state = (position, velocity)
         observation = self.observation()
