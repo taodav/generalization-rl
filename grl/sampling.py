@@ -26,6 +26,8 @@ def sample_mountaincar_env(seed: int, n: int) -> List[dict]:
 
         sample_accel_bias_mean = random_state.uniform(0.8, 1.2)
 
+        sample_amplitude = random_state.uniform(0.75, 1.75)
+
         # env = MountainCarEnv(accel_bias_mean=sample_accel_bias_mean,
         #                      p_offset=sample_p_offset, v_offset=sample_v_offset,
         #                      p_noise_divider=sample_p_noise_divider,
@@ -37,7 +39,8 @@ def sample_mountaincar_env(seed: int, n: int) -> List[dict]:
             'p_offset': sample_p_offset,
             'v_offset': sample_v_offset,
             'p_noise_divider': sample_p_noise_divider,
-            'v_noise_divider': sample_v_noise_divider
+            'v_noise_divider': sample_v_noise_divider,
+            'amplitude': sample_amplitude
         })
 
     return all_envs

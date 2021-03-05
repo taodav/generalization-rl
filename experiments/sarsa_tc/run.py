@@ -6,8 +6,7 @@ from itertools import product
 from pprint import PrettyPrinter
 
 from grl.generalized_experiment import GeneralizedExperiment
-# from grl.agents import SarsaTCAgent
-from grl.agents import SarsaLambdaTCAgent
+from grl.agents import SarsaTCAgent
 from grl.envs.mountaincar import MountainCarEnv
 from definitions import ROOT_DIR
 
@@ -24,8 +23,6 @@ if __name__ == "__main__":
     # tiles = [4, 8, 16, 32]
 
     step_sizes = [0.125, 0.06125]
-
-    lambdas = [0.75]
 
     tilings = [8]
 
@@ -53,7 +50,7 @@ if __name__ == "__main__":
     # run across all hyperparams
     current_max = None
     current_max_rew = -float('inf')
-    for step_size, lam, tiling, tile in product(step_sizes, lambdas, tilings, tiles):
+    for step_size, lam, tiling, tile in product(step_sizes, tilings, tiles):
         agent_hps = {
             'epsilon': 0.01,
             'step_size': step_size,
@@ -65,9 +62,9 @@ if __name__ == "__main__":
         }
         print("Experiment on Sarsa Lambda with Tile Coding on hyperparams")
         pp.pprint(agent_hps)
-        exp = GeneralizedExperiment(SarsaLambdaTCAgent, MountainCarEnv,
-                   agent_hps=agent_hps, env_hpses=env_hpses, run_hps=run_hps,
-                   seeds=[2020])
+        exp = GeneralizedExperiment(SarsaTCAgent, MountainCarEnv,
+                                    agent_hps=agent_hps, env_hpses=env_hpses, run_hps=run_hps,
+                                    seeds=[2020])
 
         exp.run()
 
