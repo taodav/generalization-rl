@@ -26,7 +26,7 @@ class SimpleNN(nn.Module):
         return x
 
 
-class DQNAgent(BaseAgent):
+class SarsaAgent(BaseAgent):
     def agent_init(self, agent_init_info):
         # Store the parameters provided in agent_init_info.
         self.num_actions = agent_init_info["num_actions"]

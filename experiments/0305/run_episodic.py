@@ -13,7 +13,7 @@ from definitions import ROOT_DIR
 from fastprogress.fastprogress import master_bar, progress_bar
 from grl.agents.sarsa_lambda_tc import SarsaLambdaTCAgent
 from grl.agents.sarsa_nn import DQNAgent as SarsaDQNAgent
-from grl.agents.sarsa_nn_tc import DQNAgent as TCSarsaNNAgent
+from grl.agents.sarsa_nn_tc import SarsaAgent as TCSarsaNNAgent
 from grl.agents.sarsa_tc import SarsaAgent as SarsaTCAgent
 from grl.envs.mountaincar import MountainCarEnv
 from grl.sampling import sample_mountaincar_env
