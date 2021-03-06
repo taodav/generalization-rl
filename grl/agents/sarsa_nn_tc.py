@@ -1,13 +1,3 @@
-from collections import namedtuple
-
-Trans = namedtuple('Transition', ('state', 'action', 'new_state', 'new_action', 'reward', 'discount'))
-
-class Transition(Trans):
-    __slots__ = ()
-    def __new__(cls, state, action, new_state, new_action, reward, discount=None):
-        return super(Transition, cls).__new__(cls, state, action, new_state, new_action, reward, discount)
-
-
 import numpy as np
 import torch
 import torch.nn as nn
@@ -67,7 +57,7 @@ class DQNAgent(BaseAgent):
 
     def get_state_feature(self, state):
         active_tiles = self.tc.get_tiles(*state)
-        return torch.FloatTensor(np.eye(self.iht_size)[active_tiles].sum(axis=0)).to(device)
+        return torch.FloatTensor([np.eye(self.iht_size)[active_tiles].sum(axis=0)]).to(device)
 
     def agent_start(self, state):
         state = self.get_state_feature(state)
@@ -114,23 +104,22 @@ class DQNAgent(BaseAgent):
     def batch_train(self, state, action, new_state, new_action, reward, discount):
         self.updates += 1
         self.nn.train()
-        batch = Transition([state], [action], [new_state], [new_action], [reward], [discount])
-        state_batch = torch.stack(batch.state)
-        action_batch = torch.LongTensor(batch.action).view(-1, 1).to(device)
-        new_state_batch = torch.stack(batch.new_state)
-        new_action_batch = torch.LongTensor(batch.new_action).view(-1, 1).to(device)
-        reward_batch = torch.FloatTensor(batch.reward).to(device)
-        discount_batch = torch.FloatTensor(batch.discount).to(device)
+        state_batch = state
+        action_batch = torch.LongTensor([action]).view(-1, 1).to(device)
+        new_state_batch = new_state
+        new_action_batch = torch.LongTensor([new_action]).view(-1, 1).to(device)
+        reward_batch = torch.FloatTensor([reward]).to(device)
+        discount_batch = torch.FloatTensor([discount]).to(device)
 
         current_q = self.nn(state_batch)
-        q_learning_action_values = current_q.gather(1, action_batch)
+        sarsa_action_values = current_q.gather(1, action_batch)
         with torch.no_grad():
             new_q = self.nn(new_state_batch)
-        max_q = new_q.gather(1, new_action_batch).squeeze_()
+        sarsa_q = new_q.gather(1, new_action_batch).squeeze_()
         target = reward_batch
-        target += discount_batch * max_q
+        target += discount_batch * sarsa_q
         target = target.view(-1, 1)
-        loss = criterion(q_learning_action_values, target)
+        loss = criterion(sarsa_action_values, target)
 
         self.optimizer.zero_grad()
         loss.backward()
