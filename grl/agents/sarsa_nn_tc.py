@@ -15,18 +15,18 @@ import torch.nn.functional as F
 
 from .agent import BaseAgent
 
+from.sarsa_tc import MountainCarTileCoder
+
 criterion = torch.nn.MSELoss()
-# device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-device = torch.device("cpu")
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+# device = torch.device("cpu")
 
 class SimpleNN(nn.Module):
     def __init__(self, input_size, output_size):
         super(SimpleNN, self).__init__()
         self.nonlin = nn.ReLU()
-        # self.i2h = nn.Linear(input_size, input_size//2+1, bias=False)
-        # self.h2o = nn.Linear(input_size//2+1, output_size, bias=False)
-        self.i2h = nn.Linear(input_size, 10, bias=False)
-        self.h2o = nn.Linear(10, output_size, bias=False)
+        self.i2h = nn.Linear(input_size, input_size//2, bias=False)
+        self.h2o = nn.Linear(input_size//2, output_size, bias=False)
 
     def forward(self, x):
         # 2-layer nn
@@ -40,18 +40,25 @@ class DQNAgent(BaseAgent):
     def agent_init(self, agent_init_info):
         # Store the parameters provided in agent_init_info.
         self.num_actions = agent_init_info["num_actions"]
-        self.num_states = agent_init_info["num_states"]
         self.epsilon = agent_init_info["epsilon"]
         self.step_size = agent_init_info["step_size"]
 
         self.discount = agent_init_info["discount"]
         self.rand_generator = np.random.RandomState(agent_init_info["seed"])
 
-        self.nn = SimpleNN(self.num_states, self.num_actions).to(device)
+        self.iht_size = agent_init_info['iht_size']
+
+        self.nn = SimpleNN(self.iht_size, self.num_actions).to(device)
         self.weights_init(self.nn)
         self.optimizer = torch.optim.Adam(self.nn.parameters(), lr=self.step_size)
         self.tau = 0.5
         self.updates = 0
+
+        self.tc = MountainCarTileCoder(
+            iht_size=self.iht_size,
+            num_tilings=agent_init_info['num_tilings'],
+            num_tiles=agent_init_info['num_tiles'],
+        )
 
     def weights_init(self, m):
         classname = m.__class__.__name__
@@ -59,11 +66,12 @@ class DQNAgent(BaseAgent):
             torch.nn.init.xavier_uniform(m.weight)
 
     def get_state_feature(self, state):
-        return torch.FloatTensor(state)
+        active_tiles = self.tc.get_tiles(*state)
+        return torch.FloatTensor(np.eye(self.iht_size)[active_tiles].sum(axis=0)).to(device)
 
     def agent_start(self, state):
         state = self.get_state_feature(state)
-        # Choose action using epsilon greedy.
+
         with torch.no_grad():
             current_q = self.nn(state)
         current_q.squeeze_()
