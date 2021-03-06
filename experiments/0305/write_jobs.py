@@ -47,4 +47,4 @@ if __name__ == "__main__":
     for agent_type in master_bar(list(agents.keys())):
         print(agent_type)
         grid_search(agent_type, params_to_search[agent_type])
-        print('Jobs: sbatch --array={}-{} ./maze/jobs/run_cpu.sh'.format(0, count-1))
+        print('Jobs: sbatch --array={}-{} ./experiments/0305/jobs/run_cpu.sh'.format(0, count-1))
