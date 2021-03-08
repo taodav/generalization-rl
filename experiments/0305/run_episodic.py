@@ -19,7 +19,7 @@ from grl.envs.mountaincar import MountainCarEnv
 from grl.sampling import sample_mountaincar_env
 from tqdm import tqdm
 
-num_runs = 1
+num_runs = 20
 num_episodes = 300
 
 def run_episode(env, agent):
