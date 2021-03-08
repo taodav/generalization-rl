@@ -37,7 +37,7 @@ class GeneralizedExperiment:
         self.agent_hps = agent_hps
         self.env_hpses = env_hpses
         self.run_hps = run_hps
-        self.seeds = seeds
+        self.seeds = copy.deepcopy(seeds)
 
         self.all_avg_ep_rews = []
 
