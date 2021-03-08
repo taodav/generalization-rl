@@ -1,6 +1,10 @@
+# Same as run.py, but with multiprocessing.
+
 import json
 import time
+import copy
 import numpy as np
+import multiprocessing as mp
 from pathlib import Path
 from itertools import product
 from pprint import PrettyPrinter
@@ -9,6 +13,23 @@ from grl.generalized_experiment import GeneralizedExperiment
 from grl.agents import SarsaTCAgent
 from grl.envs.mountaincar import MountainCarEnv
 from definitions import ROOT_DIR
+
+
+def single_run(agent_hps, env_hpses, run_hps, seeds, shared_res):
+    # print("Experiment on Sarsa Lambda with Tile Coding on hyperparams")
+    # pp.pprint(agent_hps)
+    exp = GeneralizedExperiment(SarsaTCAgent, MountainCarEnv,
+                                agent_hps=agent_hps, env_hpses=env_hpses, run_hps=run_hps,
+                                seeds=seeds)
+
+    exp.run()
+
+    # here we append the average per-episode reward across all 25 tuning
+    # environments.
+    avg_rew = np.average(exp.all_avg_ep_rews)
+    shared_res.append((agent_hps, avg_rew))
+    return avg_rew
+
 
 if __name__ == "__main__":
     pp = PrettyPrinter(indent=4)
@@ -35,7 +56,6 @@ if __name__ == "__main__":
         'max_total_steps': 70000
     }
 
-    all_avg_results = []
     exp_dir = Path(ROOT_DIR, 'experiments')
     timestr = time.strftime("%Y%m%d-%H%M%S")
     print(f"Start experiment for Sarsa(lambda) with Tile Coding at {timestr}")
@@ -46,9 +66,12 @@ if __name__ == "__main__":
 
 
     # run across all hyperparams
-    current_max = None
-    current_max_rew = -float('inf')
-    for step_size, tiling, tile in product(step_sizes, tilings, tiles):
+    processes = []
+    manager = mp.Manager()
+    shared_res = manager.list()
+    hyperparams = product(step_sizes, tilings, tiles)
+
+    for step_size, tiling, tile in hyperparams:
         agent_hps = {
             'epsilon': 0.01,
             'step_size': step_size,
@@ -57,22 +80,21 @@ if __name__ == "__main__":
             'num_tilings': tiling,
             'num_tiles': tile
         }
-        print("Experiment on Sarsa Lambda with Tile Coding on hyperparams")
-        pp.pprint(agent_hps)
-        exp = GeneralizedExperiment(SarsaTCAgent, MountainCarEnv,
-                                    agent_hps=agent_hps, env_hpses=env_hpses, run_hps=run_hps,
-                                    seeds=[2020])
 
-        exp.run()
+        p = mp.Process(target=single_run, args=(agent_hps, env_hpses, run_hps, copy.deepcopy([2020]), shared_res))
+        processes.append(p)
+        p.start()
 
-        # here we append the average per-episode reward across all 25 tuning
-        # environments.
-        avg_rew = np.average(exp.all_avg_ep_rews)
-        all_avg_results.append((agent_hps, avg_rew))
+    # Wait for all processes to finish
+    for process in processes:
+        process.join()
 
-        if avg_rew > current_max_rew:
-            current_max = agent_hps
-            current_max_rew = avg_rew
+    current_max = None
+    current_max_rew = -float('inf')
+    for ahps, avg in shared_res:
+        if current_max_rew < avg:
+            current_max = ahps
+            current_max_rew = avg
 
     print(f"Done tuning, best performant agent for Sarsa(lambda) w/ TC is")
     pp.pprint(current_max)
@@ -93,7 +115,7 @@ if __name__ == "__main__":
     results = {
         'best_hparams': current_max,
         'avg_ep_rewards': test_exp.all_avg_ep_rews,
-        'all_tune_results': all_avg_results
+        'all_tune_results': shared_res
     }
 
     res_fname = exp_dir / 'sarsa_lambda_tc' / f'sarsa_lambda_tc_results_{timestr}.json'
