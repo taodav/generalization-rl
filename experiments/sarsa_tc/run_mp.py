@@ -9,6 +9,7 @@ from pathlib import Path
 from itertools import product
 from pprint import PrettyPrinter
 
+from grl.generalized_mp_experiment import GeneralizedMPExperiment
 from grl.generalized_experiment import GeneralizedExperiment
 from grl.agents import SarsaTCAgent
 from grl.envs.mountaincar import MountainCarEnv
@@ -106,7 +107,7 @@ if __name__ == "__main__":
     with open(test_env_hps_fname, 'r') as f:
         test_env_hpses = json.load(f)
 
-    test_exp = GeneralizedExperiment(SarsaTCAgent, MountainCarEnv,
+    test_exp = GeneralizedMPExperiment(SarsaTCAgent, MountainCarEnv,
                                      agent_hps=current_max, env_hpses=test_env_hpses,
                                      run_hps=run_hps, seeds=[2020])
 
@@ -114,11 +115,11 @@ if __name__ == "__main__":
 
     results = {
         'best_hparams': current_max,
-        'avg_ep_rewards': test_exp.all_avg_ep_rews,
-        'all_tune_results': shared_res
+        'avg_ep_rewards': list(test_exp.all_avg_ep_rews),
+        'all_tune_results': list(shared_res)
     }
 
-    res_fname = exp_dir / 'sarsa_lambda_tc' / f'sarsa_lambda_tc_results_{timestr}.json'
+    res_fname = exp_dir / 'sarsa_tc' / f'sarsa_tc_results_{timestr}.json'
     print(f"Testing finished. Saving results to {res_fname}")
     with open(res_fname, 'w') as f:
         json.dump(results, f)

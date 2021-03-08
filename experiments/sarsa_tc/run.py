@@ -96,7 +96,7 @@ if __name__ == "__main__":
         'all_tune_results': all_avg_results
     }
 
-    res_fname = exp_dir / 'sarsa_lambda_tc' / f'sarsa_lambda_tc_results_{timestr}.json'
+    res_fname = exp_dir / 'sarsa_tc' / f'sarsa_tc_results_{timestr}.json'
     print(f"Testing finished. Saving results to {res_fname}")
     with open(res_fname, 'w') as f:
         json.dump(results, f)

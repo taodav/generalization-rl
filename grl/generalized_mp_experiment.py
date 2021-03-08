@@ -1,21 +1,18 @@
 """
-Run a set of generalized experiments as per
-https://www.cs.utexas.edu/~pstone/Papers/bib2html-links/ADPRL11-shimon.pdf
-Essentially runs one set of hyperparameters over a set of "tuning environments"
-and returns the hyperparams and agent with the highest total reward averaged
-over the tuning environments.
+Same as GeneralizedExperiment, but runs each environment in a separate subprocess
 """
 import copy
 import numpy as np
+import multiprocessing as mp
 from typing import Callable, List
 
 from grl.runner import Runner
 
 
-class GeneralizedExperiment:
+class GeneralizedMPExperiment:
     def __init__(self, agent_class: Callable, env_class: Callable,
-                   agent_hps: dict, env_hpses: List[dict], run_hps: dict,
-                   seeds: List[int]):
+                 agent_hps: dict, env_hpses: List[dict], run_hps: dict,
+                 seeds: List[int]):
         """
         Run one set of hyperparams for multiple seeds across multiple environments.
         One generalized environment is defined as a set of given hyperparameters.
@@ -39,7 +36,23 @@ class GeneralizedExperiment:
         self.run_hps = run_hps
         self.seeds = seeds
 
-        self.all_avg_ep_rews = []
+        self.manager = mp.Manager()
+        self.all_avg_ep_rews = self.manager.list()
+
+    def run_one(self, agent_hps, env_hps, run_hps, seed, env_id):
+        env_hps['seed'] = seed
+
+        env = self.env_class(**env_hps)
+
+        agent_hps['num_actions'] = env.action_space.n
+        agent_hps['num_states'] = env.observation_space.shape[0]
+        agent = self.agent_class()
+        agent.agent_init(agent_hps)
+
+        runner = Runner(agent, env, run_hps, id=env_id)
+        runner.run()
+
+        self.all_avg_ep_rews.append(np.average(runner.all_ep_rewards))
 
 
     def run(self):
@@ -50,19 +63,17 @@ class GeneralizedExperiment:
             agent_hps['seed'] = seed
             run_hps['seed'] = seed
 
+            processes = []
             for i, original_env_hps in enumerate(self.env_hpses):
                 env_hps = copy.deepcopy(original_env_hps)
-                env_hps['seed'] = seed
 
-                env = self.env_class(**env_hps)
+                p = mp.Process(target=self.run_one, args=(agent_hps, env_hps, run_hps, seed, i))
+                processes.append(p)
 
-                agent_hps['num_actions'] = env.action_space.n
-                agent_hps['num_states'] = env.observation_space.shape[0]
-                agent = self.agent_class()
-                agent.agent_init(agent_hps)
+                p.start()
 
-                runner = Runner(agent, env, run_hps, id=i)
-                runner.run()
+            for process in processes:
+                process.join()
 
-                self.all_avg_ep_rews.append(np.average(runner.all_ep_rewards))
+
 
