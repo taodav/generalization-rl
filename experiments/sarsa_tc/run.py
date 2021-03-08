@@ -16,8 +16,6 @@ if __name__ == "__main__":
 
     # step_sizes = [1.0, 0.75, 0.5, 0.25, 0.125, 0.06125]
     #
-    # lambdas = [0.99, 0.95, 0.9, 0.75, 0.5, 0.25, 0.125, 0.06125, 0]
-    #
     # tilings = [4, 8, 16, 32]
     #
     # tiles = [4, 8, 16, 32]
@@ -50,13 +48,12 @@ if __name__ == "__main__":
     # run across all hyperparams
     current_max = None
     current_max_rew = -float('inf')
-    for step_size, lam, tiling, tile in product(step_sizes, tilings, tiles):
+    for step_size, tiling, tile in product(step_sizes, tilings, tiles):
         agent_hps = {
             'epsilon': 0.01,
             'step_size': step_size,
             'discount': 0.99,
             'iht_size': 3096,
-            'lambda': lam,
             'num_tilings': tiling,
             'num_tiles': tile
         }
