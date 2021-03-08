@@ -13,13 +13,13 @@ from definitions import ROOT_DIR
 from fastprogress.fastprogress import master_bar, progress_bar
 from grl.agents.sarsa_lambda_tc import SarsaLambdaTCAgent
 from grl.agents.sarsa_nn import DQNAgent as SarsaDQNAgent
-from grl.agents.sarsa_nn_tc import DQNAgent as TCSarsaNNAgent
+from grl.agents.sarsa_nn_tc import SarsaAgent as TCSarsaNNAgent
 from grl.agents.sarsa_tc import SarsaAgent as SarsaTCAgent
 from grl.envs.mountaincar import MountainCarEnv
 from grl.sampling import sample_mountaincar_env
 from tqdm import tqdm
 
-num_runs = 1
+num_runs = 20
 num_episodes = 300
 
 def run_episode(env, agent):
