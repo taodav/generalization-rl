@@ -36,8 +36,7 @@ class GeneralizedMPExperiment:
         self.run_hps = run_hps
         self.seeds = seeds
 
-        self.manager = mp.Manager()
-        self.all_avg_ep_rews = self.manager.list()
+        self.all_avg_ep_rews = []
 
     def run_one(self, agent_hps, env_hps, run_hps, seed, env_id):
         env_hps['seed'] = seed
@@ -52,7 +51,7 @@ class GeneralizedMPExperiment:
         runner = Runner(agent, env, run_hps, id=env_id)
         runner.run()
 
-        self.all_avg_ep_rews.append(np.average(runner.all_ep_rewards))
+        return np.average(runner.all_ep_rewards)
 
 
     def run(self):
@@ -63,17 +62,10 @@ class GeneralizedMPExperiment:
             agent_hps['seed'] = seed
             run_hps['seed'] = seed
 
-            processes = []
-            for i, original_env_hps in enumerate(self.env_hpses):
-                env_hps = copy.deepcopy(original_env_hps)
+            param_list = [(agent_hps, env_hps, run_hps, seed, i) for i, env_hps in enumerate(self.env_hpses)]
 
-                p = mp.Process(target=self.run_one, args=(agent_hps, env_hps, run_hps, seed, i))
-                processes.append(p)
+            with mp.Pool() as p:
+                res_list = p.starmap(self.run_one, param_list)
 
-                p.start()
-
-            for process in processes:
-                process.join()
-
-
+            self.all_avg_ep_rews += res_list
 

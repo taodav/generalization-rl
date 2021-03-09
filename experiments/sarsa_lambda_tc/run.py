@@ -15,7 +15,7 @@ if __name__ == "__main__":
     pp = PrettyPrinter(indent=4)
     # So here we need to run multiple runs over multiple hyperparams.
 
-    # step_sizes = [1.0, 0.75, 0.5, 0.25, 0.125, 0.06125]
+    # step_sizes = [1.0, 0.75, 0.5, 0.25, 0.125, 0.06125
     #
     # lambdas = [0.99, 0.95, 0.9, 0.75, 0.5, 0.25, 0.125, 0.06125, 0]
     #

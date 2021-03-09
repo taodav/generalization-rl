@@ -16,9 +16,9 @@ from grl.envs.mountaincar import MountainCarEnv
 from definitions import ROOT_DIR
 
 
-def single_run(agent_hps, env_hpses, run_hps, seeds, shared_res):
-    # print("Experiment on Sarsa Lambda with Tile Coding on hyperparams")
-    # pp.pprint(agent_hps)
+def single_run(agent_hps, env_hpses, run_hps, seeds):
+    print("Experiment on Sarsa Lambda with Tile Coding on hyperparams")
+    pp.pprint(agent_hps)
     exp = GeneralizedExperiment(SarsaTCAgent, MountainCarEnv,
                                 agent_hps=agent_hps, env_hpses=env_hpses, run_hps=run_hps,
                                 seeds=seeds)
@@ -28,8 +28,7 @@ def single_run(agent_hps, env_hpses, run_hps, seeds, shared_res):
     # here we append the average per-episode reward across all 25 tuning
     # environments.
     avg_rew = np.average(exp.all_avg_ep_rews)
-    shared_res.append((agent_hps, avg_rew))
-    return avg_rew
+    return (agent_hps, avg_rew)
 
 
 if __name__ == "__main__":
@@ -67,9 +66,9 @@ if __name__ == "__main__":
 
 
     # run across all hyperparams
-    processes = []
-    manager = mp.Manager()
-    shared_res = manager.list()
+    param_list = []
+    # manager = mp.Manager()
+    # shared_res = manager.list()
     hyperparams = product(step_sizes, tilings, tiles)
 
     for step_size, tiling, tile in hyperparams:
@@ -81,18 +80,15 @@ if __name__ == "__main__":
             'num_tilings': tiling,
             'num_tiles': tile
         }
+        param_list.append((agent_hps, env_hpses, run_hps, [2020]))
 
-        p = mp.Process(target=single_run, args=(agent_hps, env_hpses, run_hps, copy.deepcopy([2020]), shared_res))
-        processes.append(p)
-        p.start()
 
-    # Wait for all processes to finish
-    for process in processes:
-        process.join()
+    with mp.Pool() as p:
+        res_list = p.starmap(single_run, param_list)
 
     current_max = None
     current_max_rew = -float('inf')
-    for ahps, avg in shared_res:
+    for ahps, avg in res_list:
         if current_max_rew < avg:
             current_max = ahps
             current_max_rew = avg
@@ -115,8 +111,8 @@ if __name__ == "__main__":
 
     results = {
         'best_hparams': current_max,
-        'avg_ep_rewards': list(test_exp.all_avg_ep_rews),
-        'all_tune_results': list(shared_res)
+        'avg_ep_rewards': test_exp.all_avg_ep_rews,
+        'all_tune_results': res_list
     }
 
     res_fname = exp_dir / 'sarsa_tc' / f'sarsa_tc_results_{timestr}.json'
