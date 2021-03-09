@@ -2,9 +2,9 @@
 
 import json
 import time
-import copy
 import numpy as np
 import multiprocessing as mp
+from datetime import timedelta
 from pathlib import Path
 from itertools import product
 from pprint import PrettyPrinter
@@ -32,20 +32,21 @@ def single_run(agent_hps, env_hpses, run_hps, seeds):
 
 
 if __name__ == "__main__":
+    time_start = time.time()
     pp = PrettyPrinter(indent=4)
     # So here we need to run multiple runs over multiple hyperparams.
 
-    # step_sizes = [1.0, 0.75, 0.5, 0.25, 0.125, 0.06125]
+    step_sizes = [1.0, 0.75, 0.5, 0.25, 0.125, 0.06125]
+
+    tilings = [4, 8, 16, 32]
+
+    tiles = [4, 8, 16, 32]
+
+    # step_sizes = [0.125, 0.06125]
     #
-    # tilings = [4, 8, 16, 32]
+    # tilings = [8]
     #
-    # tiles = [4, 8, 16, 32]
-
-    step_sizes = [0.125, 0.06125]
-
-    tilings = [8]
-
-    tiles = [16]
+    # tiles = [16]
 
     # THIS IS JUST A TEST
     # We set num_actions in experiment.py
@@ -119,3 +120,10 @@ if __name__ == "__main__":
     print(f"Testing finished. Saving results to {res_fname}")
     with open(res_fname, 'w') as f:
         json.dump(results, f)
+
+    time_end = time.time()
+    elapsed = time_end - time_start
+
+    print(f"Time elapsed for experiment: {str(timedelta(seconds=elapsed))}")
+
+

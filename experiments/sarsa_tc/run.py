@@ -20,11 +20,11 @@ if __name__ == "__main__":
     #
     # tiles = [4, 8, 16, 32]
 
-    step_sizes = [0.125, 0.06125]
+    step_sizes = [1.0]
 
     tilings = [8]
 
-    tiles = [16]
+    tiles = [32]
 
     # THIS IS JUST A TEST
     # We set num_actions in experiment.py

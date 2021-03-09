@@ -29,7 +29,10 @@ class SarsaAgent(BaseAgent):
         """
         self.num_actions = agent_init_info["num_actions"]
         self.epsilon = agent_init_info["epsilon"]
-        self.step_size = agent_init_info["step_size"]
+
+        # We need to divide by number of tilings
+        # in order to prevent divergence.
+        self.step_size = agent_init_info["step_size"] / agent_init_info['num_tilings']
         self.discount = agent_init_info["discount"]
         self.rand_generator = np.random.RandomState(agent_init_info["seed"])
 
