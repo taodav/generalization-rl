@@ -4,6 +4,7 @@ import json
 import time
 import numpy as np
 import multiprocessing as mp
+import argparse
 from datetime import timedelta
 from pathlib import Path
 from itertools import product
@@ -32,6 +33,11 @@ def single_run(agent_hps, env_hpses, run_hps, seeds):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--no-cheat", help="Use the max range version of tile coded ranges",
+                        action="store_true")
+    args = parser.parse_args()
+
     time_start = time.time()
     pp = PrettyPrinter(indent=4)
     # So here we need to run multiple runs over multiple hyperparams.
@@ -52,7 +58,7 @@ if __name__ == "__main__":
     #
     # tiles = [16]
 
-    cheating_tile_range = True
+    cheating_tile_range = False if args.no_cheat else True
 
     # THIS IS JUST A TEST
     # We set num_actions in experiment.py
@@ -67,7 +73,7 @@ if __name__ == "__main__":
     timestr = time.strftime("%Y%m%d-%H%M%S")
     print(f"Start experiment for Sarsa(lambda) with Tile Coding at {timestr}")
 
-    env_hps_fname = exp_dir / 'tuning_params.json'
+    env_hps_fname = exp_dir / 'reproduce_tuning_params.json'
     with open(env_hps_fname, 'r') as f:
         env_hpses = json.load(f)
 
@@ -123,8 +129,8 @@ if __name__ == "__main__":
         'avg_ep_rewards': test_exp.all_avg_ep_rews,
         'all_tune_results': res_list
     }
-
-    res_fname = exp_dir / 'sarsa_tc' / f'sarsa_tc_results_{timestr}.json'
+    name = 'cheat' if cheating_tile_range else 'noncheat'
+    res_fname = exp_dir / 'og_sarsa_lambda_tc' / f'sarsa_lambda_tc_{name}_results_{timestr}.json'
     print(f"Testing finished. Saving results to {res_fname}")
     with open(res_fname, 'w') as f:
         json.dump(results, f)
