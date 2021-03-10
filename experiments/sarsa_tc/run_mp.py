@@ -77,7 +77,7 @@ if __name__ == "__main__":
             'epsilon': 0.01,
             'step_size': step_size,
             'discount': 0.99,
-            'iht_size': 3096,
+            'iht_size': 4096,
             'num_tilings': tiling,
             'num_tiles': tile
         }

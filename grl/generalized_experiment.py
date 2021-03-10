@@ -58,6 +58,12 @@ class GeneralizedExperiment:
 
                 agent_hps['num_actions'] = env.action_space.n
                 agent_hps['num_states'] = env.observation_space.shape[0]
+                agent_hps['position_min'] = env.min_position
+                agent_hps['position_max'] = env.max_position
+                agent_hps['velocity_min'] = env.min_speed
+                agent_hps['velocity_max'] = env.max_speed
+
+
                 agent = self.agent_class()
                 agent.agent_init(agent_hps)
 

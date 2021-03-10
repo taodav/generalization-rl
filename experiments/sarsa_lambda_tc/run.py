@@ -58,7 +58,7 @@ if __name__ == "__main__":
             'epsilon': 0.01,
             'step_size': step_size,
             'discount': 0.99,
-            'iht_size': 3096,
+            'iht_size': 4096,
             'lambda': lam,
             'num_tilings': tiling,
             'num_tiles': tile
@@ -90,7 +90,7 @@ if __name__ == "__main__":
     with open(test_env_hps_fname, 'r') as f:
         test_env_hpses = json.load(f)
 
-    test_exp = GeneralizedExperiment(SarsaTCAgent, MountainCarEnv,
+    test_exp = GeneralizedExperiment(SarsaLambdaTCAgent, MountainCarEnv,
                                      agent_hps=current_max, env_hpses=test_env_hpses,
                                      run_hps=run_hps, seeds=[2020])
 
