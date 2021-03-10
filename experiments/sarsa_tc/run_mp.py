@@ -36,17 +36,17 @@ if __name__ == "__main__":
     pp = PrettyPrinter(indent=4)
     # So here we need to run multiple runs over multiple hyperparams.
 
-    step_sizes = [1.0, 0.75, 0.5, 0.25, 0.125, 0.06125]
-
-    tilings = [4, 8, 16, 32]
-
-    tiles = [4, 8, 16, 32]
-
-    # step_sizes = [0.125, 0.06125]
+    # step_sizes = [1.0, 0.75, 0.5, 0.25, 0.125, 0.06125]
     #
-    # tilings = [8]
+    # tilings = [4, 8, 16, 32]
     #
-    # tiles = [16]
+    # tiles = [4, 8, 16, 32]
+
+    step_sizes = [0.125]
+
+    tilings = [8]
+
+    tiles = [16]
 
     cheating_tile_range = True
 
