@@ -8,4 +8,4 @@
 
 source ~/scratch/generalization-rl/venv/bin/activate
 
-python run_mp.py --no-cheat
+python run_mp.py
