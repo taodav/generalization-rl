@@ -26,6 +26,8 @@ if __name__ == "__main__":
 
     tiles = [32]
 
+    cheating_tile_range = True
+
     # THIS IS JUST A TEST
     # We set num_actions in experiment.py
 
@@ -55,7 +57,8 @@ if __name__ == "__main__":
             'discount': 0.99,
             'iht_size': 4096,
             'num_tilings': tiling,
-            'num_tiles': tile
+            'num_tiles': tile,
+            'cheating_tile_range': cheating_tile_range
         }
         print("Experiment on Sarsa Lambda with Tile Coding on hyperparams")
         pp.pprint(agent_hps)

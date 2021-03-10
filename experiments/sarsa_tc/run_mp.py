@@ -48,6 +48,8 @@ if __name__ == "__main__":
     #
     # tiles = [16]
 
+    cheating_tile_range = True
+
     # THIS IS JUST A TEST
     # We set num_actions in experiment.py
 
@@ -79,7 +81,8 @@ if __name__ == "__main__":
             'discount': 0.99,
             'iht_size': 4096,
             'num_tilings': tiling,
-            'num_tiles': tile
+            'num_tiles': tile,
+            'cheating_tile_range': cheating_tile_range
         }
         param_list.append((agent_hps, env_hpses, run_hps, [2020]))
 
