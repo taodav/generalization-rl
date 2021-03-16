@@ -31,7 +31,7 @@ class SarsaAgent(BaseAgent):
         # Store the parameters provided in agent_init_info.
         self.num_actions = agent_init_info["num_actions"]
         self.epsilon = agent_init_info["epsilon"]
-        self.step_size = agent_init_info["step_size"]
+        self.step_size = agent_init_info["step_size"] / agent_init_info["num_tilings"]
 
         self.discount = agent_init_info["discount"]
         self.rand_generator = np.random.RandomState(agent_init_info["seed"])

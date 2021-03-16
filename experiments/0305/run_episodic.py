@@ -1,4 +1,5 @@
 import copy
+import json
 import math
 import time
 from pathlib import Path
@@ -19,7 +20,7 @@ from grl.envs.mountaincar import MountainCarEnv
 from grl.sampling import sample_mountaincar_env
 from tqdm import tqdm
 
-num_runs = 20
+num_runs = 1
 num_episodes = 300
 
 def run_episode(env, agent):
@@ -69,17 +70,24 @@ agent_infos = {
 
 metrics = {"ep_rewards": {}, "hyper_params":{}}
 
-def objective(agent_type, hyper_params, num_runs=num_runs):
+def objective(agent_type, hyper_params, num_runs=num_runs, env_idx=0):
     start = time.time()
 
     ep_rewards = {}
 
-    env_infos = sample_mountaincar_env(42, 2)[1:]
+    with open(Path(ROOT_DIR)/'experiments/tuning_params.json', 'r') as f:
+        env_infos = json.load(f)
+
+    # env_infos = sample_mountaincar_env(42, 2)
     algorithm = agent_type + '_' + '_'.join([f'{k}_{v}' for k, v in hyper_params.items()])
 
     mb = master_bar(env_infos)
 
     for env_name, env_info in enumerate(mb):
+        total_steps = 0
+
+        if env_name != env_idx:
+            continue
         if env_name not in ep_rewards:
             ep_rewards[env_name] = {}
             print(env_name)
@@ -98,14 +106,17 @@ def objective(agent_type, hyper_params, num_runs=num_runs):
             agent.agent_init(agent_info)
 
             rewards = []
-            epsilon = 1
+            epsilon = .1
 
             for episode in range(num_episodes):
                 print(f"episode {episode}",end='\r')
                 agent.epsilon = epsilon
                 sum_of_rewards = run_episode(env, agent)
-                epsilon *= 0.99
+                # epsilon *= 0.99
                 rewards.append(sum_of_rewards)
+                total_steps -= sum_of_rewards
+                if total_steps >= 150000:
+                    break
 
             ep_rewards[env_name].setdefault(algorithm, []).append(rewards)
 
@@ -114,8 +125,8 @@ def objective(agent_type, hyper_params, num_runs=num_runs):
     metrics['ep_rewards'] = ep_rewards
     metrics['hyper_params'][algorithm] = hyper_params
     Path(f"{ROOT_DIR}/experiments/0305/metrics/").mkdir(parents=True, exist_ok=True)
-    torch.save(metrics, f'{ROOT_DIR}/experiments/0305/metrics/{algorithm}.torch')
-    return algorithm, np.mean(metrics["ep_rewards"][env_name][algorithm]), hyper_params
+    torch.save(metrics, f'{ROOT_DIR}/experiments/0305/metrics/env_{env_idx}_{algorithm}.torch')
+    return algorithm, np.mean(metrics["ep_rewards"][env_idx][algorithm]), hyper_params
 
 
 if __name__ == '__main__':
