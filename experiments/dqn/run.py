@@ -6,28 +6,27 @@ from itertools import product
 from pprint import PrettyPrinter
 
 from grl.generalized_experiment import GeneralizedExperiment
-from grl.agents import SarsaAgent
+from grl.agents import DQNAgent
 # from grl.agents import SarsaTCAgent
 from grl.envs.mountaincar import MountainCarEnv
 from definitions import ROOT_DIR
+
+def get_lr(b=1e-2, a=2, n=5):
+    return list(b/a**np.array(list(range(0, n))))
 
 if __name__ == "__main__":
     pp = PrettyPrinter(indent=4)
     # So here we need to run multiple runs over multiple hyperparams.
 
-    step_sizes = [1.0, 0.75, 0.5, 0.25, 0.125, 0.06125]
-
-    tilings = [8, 16, 32]
-
-    tiles = [8, 16, 32]
-
-    # step_sizes = [0.125, 0.06125]
+    # step_sizes = [1.0, 0.75, 0.5, 0.25, 0.125, 0.06125]
     #
-    # lambdas = [0.75]
+    # tilings = [8, 16, 32]
     #
-    # tilings = [8]
-    #
-    # tiles = [16]
+    # tiles = [8, 16, 32]
+
+    max_replay_sizes = [10000]
+
+    step_sizes = get_lr()[-3:-2]
 
     # THIS IS JUST A TEST
     # We set num_actions in experiment.py
@@ -51,17 +50,15 @@ if __name__ == "__main__":
     # run across all hyperparams
     current_max = None
     current_max_rew = -float('inf')
-    for step_size, lam, tiling, tile in product(step_sizes, lambdas, tilings, tiles):
+    for step_size, replay_size in product(step_sizes, max_replay_sizes):
         agent_hps = {
+            'batch_size': 32,
             'epsilon': 0.01,
             'step_size': step_size,
             'discount': 0.99,
-            # 'iht_size': 3096,
-            # 'lambda': lam,
-            # 'num_tilings': tiling,
-            # 'num_tiles': tile
+            'max_replay_size': replay_size
         }
-        print("Experiment on Sarsa Lambda with Tile Coding on hyperparams")
+        print("Experiment on DQN on hyperparams")
         pp.pprint(agent_hps)
         exp = GeneralizedExperiment(DQNAgent, MountainCarEnv,
                                     agent_hps=agent_hps, env_hpses=env_hpses, run_hps=run_hps,
