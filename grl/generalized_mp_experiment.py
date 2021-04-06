@@ -3,7 +3,7 @@ Same as GeneralizedExperiment, but runs each environment in a separate subproces
 """
 import copy
 import numpy as np
-import multiprocessing as mp
+import torch.multiprocessing as mp
 from typing import Callable, List
 
 from grl.runner import Runner
@@ -52,7 +52,7 @@ class GeneralizedMPExperiment:
         agent_hps['velocity_min'] = env.min_speed
         agent_hps['velocity_max'] = env.max_speed
 
-        if not agent_hps['cheating_tile_range']:
+        if 'cheating_tile_range' not in agent_hps or not agent_hps['cheating_tile_range']:
             from grl.sampling import P_OFFSET_MIN, P_OFFSET_MAX, V_OFFSET_MIN, V_OFFSET_MAX
             agent_hps['position_max'] += P_OFFSET_MAX
             agent_hps['position_min'] += P_OFFSET_MIN

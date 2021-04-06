@@ -1,19 +1,41 @@
 import json
 import time
 import numpy as np
+from torch.multiprocessing import Pool, set_start_method
+try:
+     set_start_method('spawn')
+except RuntimeError:
+    pass
 import argparse
 from pathlib import Path
 from itertools import product
 from pprint import PrettyPrinter
+from datetime import timedelta
 
 from grl.generalized_experiment import GeneralizedExperiment
+from grl.generalized_mp_experiment import GeneralizedMPExperiment
 from grl.agents import DQNAgent
-# from grl.agents import SarsaTCAgent
 from grl.envs.mountaincar import MountainCarEnv
 from definitions import ROOT_DIR
 
 def get_lr(b=1e-2, a=2, n=5):
     return list(b/a**np.array(list(range(0, n))))
+
+def single_run(agent_hps, env_hpses, run_hps, seeds):
+    print("Experiment on DQN on hyperparams")
+    pp = PrettyPrinter(indent=4)
+    pp.pprint(agent_hps)
+    exp = GeneralizedExperiment(DQNAgent, MountainCarEnv,
+                                agent_hps=agent_hps, env_hpses=env_hpses, run_hps=run_hps,
+                                seeds=seeds)
+
+    exp.run()
+
+    # here we append the average per-episode reward across all 25 tuning
+    # environments.
+    avg_rew = np.average(exp.all_avg_ep_rews)
+    return (agent_hps, avg_rew)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -23,15 +45,16 @@ if __name__ == "__main__":
                         action="store_true")
     args = parser.parse_args()
 
-
+    time_start = time.time()
     pp = PrettyPrinter(indent=4)
     # So here we need to run multiple runs over multiple hyperparams.
 
-    # step_sizes = [1.0, 0.75, 0.5, 0.25, 0.125, 0.06125]
+    # max_replay_sizes = [100, 10000, 70000]
     #
-    # tilings = [8, 16, 32]
+    # update_target_intervals = [100, 10000, 70000]
     #
-    # tiles = [8, 16, 32]
+    # step_sizes = get_lr()
+
 
     max_replay_sizes = [10000]
 
@@ -60,8 +83,7 @@ if __name__ == "__main__":
 
 
     # run across all hyperparams
-    current_max = None
-    current_max_rew = -float('inf')
+    param_list = []
     for step_size, replay_size, update_target in product(step_sizes, max_replay_sizes, update_target_intervals):
         agent_hps = {
             'batch_size': 32,
@@ -73,22 +95,20 @@ if __name__ == "__main__":
             'use_replay': not args.no_replay,
             'use_target': not args.no_target
         }
-        print("Experiment on DQN on hyperparams")
-        pp.pprint(agent_hps)
-        exp = GeneralizedExperiment(DQNAgent, MountainCarEnv,
-                                    agent_hps=agent_hps, env_hpses=env_hpses, run_hps=run_hps,
-                                    seeds=[2020])
 
-        exp.run()
+        param_list.append((agent_hps, env_hpses, run_hps, [2020]))
 
-        # here we append the average per-episode reward across all 25 tuning
-        # environments.
-        avg_rew = np.average(exp.all_avg_ep_rews)
-        all_avg_results.append((agent_hps, avg_rew))
+    with Pool() as p:
+        res_list = p.starmap(single_run, param_list)
 
-        if avg_rew > current_max_rew:
-            current_max = agent_hps
-            current_max_rew = avg_rew
+    current_max = None
+    current_max_rew = -float('inf')
+    for ahps, avg in res_list:
+        if avg > current_max_rew:
+            current_max = ahps
+            current_max_rew = avg
+    # current_max = param_list[0][0]
+
 
     print(f"Done tuning, best performant agent for Sarsa(lambda) w/ TC is")
     pp.pprint(current_max)
@@ -100,7 +120,7 @@ if __name__ == "__main__":
     with open(test_env_hps_fname, 'r') as f:
         test_env_hpses = json.load(f)
 
-    test_exp = GeneralizedExperiment(DQNAgent, MountainCarEnv,
+    test_exp = GeneralizedMPExperiment(DQNAgent, MountainCarEnv,
                                      agent_hps=current_max, env_hpses=test_env_hpses,
                                      run_hps=run_hps, seeds=[2020])
 
@@ -116,3 +136,8 @@ if __name__ == "__main__":
     print(f"Testing finished. Saving results to {res_fname}")
     with open(res_fname, 'w') as f:
         json.dump(results, f)
+
+    time_end = time.time()
+    elapsed = time_end - time_start
+
+    print(f"Time elapsed for experiment: {str(timedelta(seconds=elapsed))}")
