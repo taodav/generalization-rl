@@ -46,7 +46,7 @@ if __name__ == "__main__":
     run_hps = {
         'log_every': 1000,
         'max_eps_steps': float('inf'),
-        'max_total_steps': 70000
+        'max_total_steps': 150000
     }
 
     all_avg_results = []
