@@ -49,9 +49,10 @@ if __name__ == "__main__":
     pp = PrettyPrinter(indent=4)
     # So here we need to run multiple runs over multiple hyperparams.
 
-    max_replay_sizes = [1000, 25000, 150000]
+    # The else statements are placeholder values so our product isn't empty
+    max_replay_sizes = [1000, 25000, 150000] if not args.no_replay else [150000]
 
-    update_target_intervals = [100, 1000, 5000, 10000]
+    update_target_intervals = [100, 1000, 5000, 10000] if not args.no_target else [10000]
 
     step_sizes = get_lr()
 
