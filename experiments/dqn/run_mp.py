@@ -76,7 +76,7 @@ if __name__ == "__main__":
     all_avg_results = []
     exp_dir = Path(ROOT_DIR, 'experiments')
     timestr = time.strftime("%Y%m%d-%H%M%S")
-    print(f"Start experiment for Sarsa(lambda) with Tile Coding at {timestr}")
+    print(f"Start experiment for DQN {timestr}")
 
     env_hps_fname = exp_dir / 'tuning_params.json'
     with open(env_hps_fname, 'r') as f:
@@ -111,7 +111,7 @@ if __name__ == "__main__":
     # current_max = param_list[0][0]
 
 
-    print(f"Done tuning, best performant agent for Sarsa(lambda) w/ TC is")
+    print(f"Done tuning, best performant agent for DQN is")
     pp.pprint(current_max)
     # Here we need to pick which ones are best
 
@@ -133,7 +133,15 @@ if __name__ == "__main__":
         'all_tune_results': all_avg_results
     }
 
-    res_fname = exp_dir / 'sarsa_lambda_tc' / f'sarsa_lambda_tc_results_{timestr}.json'
+    fname = "dqn"
+
+    if args.no_target:
+        fname += "_no_target"
+
+    if args.no_replay:
+        fname += "_no_replay"
+
+    res_fname = exp_dir / 'dqn' / f'{fname}_results_{timestr}.json'
     print(f"Testing finished. Saving results to {res_fname}")
     with open(res_fname, 'w') as f:
         json.dump(results, f)
