@@ -25,7 +25,7 @@ class SarsaLambdaTCAgent(BaseAgent):
         """
         self.num_actions = agent_init_info["num_actions"]
         self.epsilon = agent_init_info["epsilon"]
-        self.step_size = agent_init_info["step_size"]
+        self.step_size = agent_init_info["step_size"] / agent_init_info['num_tilings']
         self.discount = agent_init_info["discount"]
         self.trace_type = agent_init_info.get("trace_type", TRACE.REPLACING)
         self.lam = agent_init_info["lambda"]
@@ -34,9 +34,15 @@ class SarsaLambdaTCAgent(BaseAgent):
         self.w = np.ones((self.num_actions, agent_init_info['iht_size']))
         self.z = np.zeros((self.num_actions, agent_init_info['iht_size']))
 
-        self.tc = MountainCarTileCoder(iht_size=agent_init_info['iht_size'],
-                                       num_tilings=agent_init_info['num_tilings'],
-                                       num_tiles=agent_init_info['num_tiles'])
+        self.tc = MountainCarTileCoder(
+            iht_size=agent_init_info['iht_size'],
+            num_tilings=agent_init_info['num_tilings'],
+            num_tiles=agent_init_info['num_tiles'],
+            position_min=agent_init_info['position_min'],
+            position_max=agent_init_info['position_max'],
+            velocity_min=agent_init_info['velocity_min'],
+            velocity_max=agent_init_info['velocity_max']
+        )
 
     def select_action(self, tiles):
         """

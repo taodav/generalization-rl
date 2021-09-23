@@ -58,6 +58,21 @@ class GeneralizedExperiment:
 
                 agent_hps['num_actions'] = env.action_space.n
                 agent_hps['num_states'] = env.observation_space.shape[0]
+
+                # For our tile coding ranges
+                agent_hps['position_min'] = env.min_position
+                agent_hps['position_max'] = env.max_position
+                agent_hps['velocity_min'] = env.min_speed
+                agent_hps['velocity_max'] = env.max_speed
+
+                if 'cheating_tile_range' not in agent_hps or not agent_hps['cheating_tile_range']:
+                    from grl.sampling import P_OFFSET_MIN, P_OFFSET_MAX, V_OFFSET_MIN, V_OFFSET_MAX
+                    agent_hps['position_max'] += P_OFFSET_MAX
+                    agent_hps['position_min'] += P_OFFSET_MIN
+                    agent_hps['velocity_max'] += V_OFFSET_MAX
+                    agent_hps['velocity_min'] += V_OFFSET_MIN
+
+
                 agent = self.agent_class()
                 agent.agent_init(agent_hps)
 

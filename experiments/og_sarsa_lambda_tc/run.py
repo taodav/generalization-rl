@@ -1,6 +1,7 @@
 import json
 import time
 import numpy as np
+import argparse
 from pathlib import Path
 from itertools import product
 from pprint import PrettyPrinter
@@ -12,18 +13,21 @@ from grl.envs.mountaincar import MountainCarEnv
 from definitions import ROOT_DIR
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--no-cheat", help="Use the max range version of tile coded ranges",
+                        action="store_true")
+    args = parser.parse_args()
+
     pp = PrettyPrinter(indent=4)
     # So here we need to run multiple runs over multiple hyperparams.
 
-    # step_sizes = [1., 2**(-1), 2**(-2), 2**(-3), 2**(-4)]
-    #
-    # tilings = [4, 8, 16]
-    #
-    # tiles = [4, 8, 16]
-
+    # step_sizes = [1.0, 0.75, 0.5, 0.25, 0.125, 0.06125
     #
     # lambdas = [0.99, 0.95, 0.9, 0.75, 0.5, 0.25, 0.125, 0.06125, 0]
-
+    #
+    # tilings = [4, 8, 16, 32]
+    #
+    # tiles = [4, 8, 16, 32]
 
     step_sizes = [0.125, 0.06125]
 
@@ -33,7 +37,7 @@ if __name__ == "__main__":
 
     tiles = [16]
 
-    cheating_tile_range = True
+    cheating_tile_range = False if args.no_cheat else True
 
     # THIS IS JUST A TEST
     # We set num_actions in experiment.py
@@ -49,7 +53,7 @@ if __name__ == "__main__":
     timestr = time.strftime("%Y%m%d-%H%M%S")
     print(f"Start experiment for Sarsa(lambda) with Tile Coding at {timestr}")
 
-    env_hps_fname = exp_dir / 'tuning_params.json'
+    env_hps_fname = exp_dir / 'reproduce_tuning_params.json'
     with open(env_hps_fname, 'r') as f:
         env_hpses = json.load(f)
 
@@ -91,7 +95,7 @@ if __name__ == "__main__":
 
     print("Begin testing")
     # Test here
-    test_env_hps_fname = Path(ROOT_DIR, 'experiments', 'testing_params.json')
+    test_env_hps_fname = Path(ROOT_DIR, 'experiments', 'reproduce_testing_params.json')
     with open(test_env_hps_fname, 'r') as f:
         test_env_hpses = json.load(f)
 
@@ -107,7 +111,7 @@ if __name__ == "__main__":
         'all_tune_results': all_avg_results
     }
 
-    res_fname = exp_dir / 'sarsa_lambda_tc' / f'sarsa_lambda_tc_results_{timestr}.json'
-    print(f"Testing finished. Saving results to {res_fname}")
+    name = 'cheat' if cheating_tile_range else 'noncheat'
+    res_fname = exp_dir / 'og_sarsa_lambda_tc' / f'sarsa_lambda_tc_{name}_results_{timestr}.json'
     with open(res_fname, 'w') as f:
         json.dump(results, f)

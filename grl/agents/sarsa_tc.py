@@ -29,7 +29,10 @@ class SarsaAgent(BaseAgent):
         """
         self.num_actions = agent_init_info["num_actions"]
         self.epsilon = agent_init_info["epsilon"]
-        self.step_size = agent_init_info["step_size"]
+
+        # We need to divide by number of tilings
+        # in order to prevent divergence.
+        self.step_size = agent_init_info["step_size"] / agent_init_info['num_tilings']
         self.discount = agent_init_info["discount"]
         self.rand_generator = np.random.RandomState(agent_init_info["seed"])
 
@@ -39,6 +42,10 @@ class SarsaAgent(BaseAgent):
             iht_size=agent_init_info['iht_size'],
             num_tilings=agent_init_info['num_tilings'],
             num_tiles=agent_init_info['num_tiles'],
+            position_min=agent_init_info['position_min'],
+            position_max=agent_init_info['position_max'],
+            velocity_min=agent_init_info['velocity_min'],
+            velocity_max=agent_init_info['velocity_max']
         )
 
     def select_action(self, tiles):
@@ -121,7 +128,9 @@ class SarsaAgent(BaseAgent):
 
 
 class MountainCarTileCoder:
-    def __init__(self, iht_size=4096, num_tilings=8, num_tiles=8):
+    def __init__(self, iht_size=4096, num_tilings=8, num_tiles=8,
+                 position_min=-1.2, position_max=0.6,
+                 velocity_min=-0.07, velocity_max=0.07):
         """
         Initializes the MountainCar Tile Coder
         Initializers:
@@ -138,6 +147,14 @@ class MountainCarTileCoder:
         self.num_tilings = num_tilings
         self.num_tiles = num_tiles
 
+        self.position_min = position_min
+        self.position_max = position_max
+        self.velocity_min = velocity_min
+        self.velocity_max = velocity_max
+
+        self.position_scale = self.num_tiles / (self.position_max - self.position_min)
+        self.velocity_scale = self.num_tiles / (self.velocity_max - self.velocity_min)
+
     def get_tiles(self, position, velocity):
         """
         Takes in a position and velocity from the mountaincar environment
@@ -150,13 +167,11 @@ class MountainCarTileCoder:
         tiles - np.array, active tiles
         """
         # Set the max and min of position and velocity to scale the input
-
-
-        position_scale = self.num_tiles / (POSITION_MAX - POSITION_MIN)
-        velocity_scale = self.num_tiles / (VELOCITY_MAX - VELOCITY_MIN)
+        # position_scale = self.num_tiles / (POSITION_MAX - POSITION_MIN)
+        # velocity_scale = self.num_tiles / (VELOCITY_MAX - VELOCITY_MIN)
 
         # get the tiles using tc.tiles, with self.iht, self.num_tilings and [scaled position, scaled velocity]
-        tiles = tc.tiles(self.iht, self.num_tilings, [position * position_scale,
-                                                      velocity * velocity_scale])
+        tiles = tc.tiles(self.iht, self.num_tilings, [position * self.position_scale,
+                                                      velocity * self.velocity_scale])
 
         return np.array(tiles)

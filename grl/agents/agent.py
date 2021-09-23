@@ -78,5 +78,6 @@ class BaseAgent:
 
             if q_values[i] == top:
                 ties.append(i)
-
+        if not ties:
+            print(f"TIES {ties}, q_values {q_values}")
         return self.rand_generator.choice(ties)
